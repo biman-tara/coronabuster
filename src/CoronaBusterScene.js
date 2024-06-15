@@ -29,7 +29,9 @@ Phaser.Scene
     create(){
         const gameWidht = this.scale.width*0.5;
         const gameHeight =this.scale.height*0.5;
+        //kode membuat background
         this.add.image(gameWidht,gameHeight,"background")
+        //membuat animasi awan
         this.clouds = this.physics.add.group({
             key : 'cloud',
             repeat :10,
@@ -37,20 +39,22 @@ Phaser.Scene
         Phaser.Actions.RandomRectangle(
             this.clouds.getChildren(),
             this.physics.world.bounds
-        )   
-        this.playercreateButton()
+        ) 
+        //menampilkan tombol/  
+        this.createButton()
+        //menampilkan player
+        this.player=this.createPlayer()
     }
     update(time){
          this.clouds.children.iterate((child)=>{
             child.setVelocityY(20)
         if(child.y> this.scale.height){
             //@ts-ignore
-            child.x= phaser.math.Between(10,400)
+            child.x= Phaser.Math.Between(10,400)
             //@ts-ignore
             child.y=0;
         }
         })
-        this.player=this.createPlayer()
         this.moveplayer(this.player,time)
     }
     createButton(){
@@ -92,7 +96,7 @@ Phaser.Scene
     }
     moveplayer(player,time){
         if(this.nav_left){
-            this.player.setVelocityX(thi.speed*-1)
+            this.player.setVelocityX(this.speed*-1)
             this.player.anims.play('left',true)
             this.player.setFlipX(false)
         }else if(this.nav_right){
