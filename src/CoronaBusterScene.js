@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import FallingObject from "./ui/FallingObject";
+import Laser from "./ui/Laser";
 export default class CoronaBusterScene extends
 Phaser.Scene
 {
@@ -12,6 +14,10 @@ Phaser.Scene
         this.shoot= false;
         this.player=undefined;
         this.speed=100
+        this.enemies = undefined;
+        this.enemyspeed =50;
+        this.lasers=undefined
+        this.lastFired=10
         
     }
     preload(){
@@ -23,6 +29,11 @@ Phaser.Scene
         this.load.spritesheet('player','images/ship.png',{
             frameWidth:66,
             frameHeight:66
+        })
+        this.load.image('enemy','images/enemy.png')
+        this.load.spritesheet('laser','images/laser-bolts.png',{
+            frameWidth:16,
+            frameHeight:16,
         })
         
     }
@@ -44,16 +55,39 @@ Phaser.Scene
         this.createButton()
         //menampilkan player
         this.player=this.createPlayer()
+        this.enemies= this.physics.add.group({
+            classType:FallingObject,
+            maxSize: 10,
+            runChildUpdate:true
+        })
+        this.time.addEvent({
+            delay:Phaser.Math.Between(1000,5000),
+            callback:this.spawnEnemy,
+            callbackScope:this,
+            loop:true
+        })
+        this.lasers=this.physics.add.group({
+            classType:Laser,
+            maxSize:10,
+            runChildUpdate:true
+        })
+        this.physics.add.overlap(
+            this.lasers,
+            this.enemies,
+            this.hitEnemy,
+            null,
+            this
+        )
     }
     update(time){
          this.clouds.children.iterate((child)=>{
             child.setVelocityY(20)
-        if(child.y> this.scale.height){
+            if(child.y> this.scale.height){
             //@ts-ignore
-            child.x= Phaser.Math.Between(10,400)
+                child.x= Phaser.Math.Between(10,400)
             //@ts-ignore
-            child.y=0;
-        }
+                child.y=0;
+            }
         })
         this.moveplayer(this.player,time)
     }
@@ -107,6 +141,14 @@ Phaser.Scene
             this.player.setVelocityX(0)
             this.player.anims.play('turn')
         }
+        //above there's codes for moving player
+        if((this.shoot)&&time>this.lastFired){
+            const laser =this.lasers.get(0,0,'laser')
+            if(laser){
+                laser.fire(this.player.x,this.player.y)
+                this.lastFired=time+150
+            }
+        }
     }
     createPlayer(){
         const player=this.physics.add.sprite(200,450,'player')
@@ -131,6 +173,24 @@ Phaser.Scene
             })
         })
         return player
+    }
+    spawnEnemy(){
+        const config ={
+            speed:30,
+            rotation:0.1
+
+         }
+    //@ts-ignore
+        const enemy = this.enemies.get(0,0,'enemy',config)
+        const positionX=Phaser.Math.Between(50,350)
+        if (enemy) {
+              enemy.spawn(positionX)
+        }
+
+    }
+    hitEnemy(laser,enemy){
+        laser.die()
+        enemy.die()
     }
 
 }
